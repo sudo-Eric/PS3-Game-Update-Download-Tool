@@ -78,8 +78,8 @@ def downloadPackage(package, downloadFolder, overwriteExistingFiles):
         os.makedirs(downloadFolder)
     # If file already exists and file overwriting is disabled, skip it
     if os.path.exists(downloadFolder + os.path.sep + packageName) and not overwriteExistingFiles:
-        print("\t+File already exists. Skipping.")
-        logFile.write(" * File already exists. Skipping.\n")
+        print("\t+ File already exists. Skipping.")
+        logFile.write(" * File already exists for version %s. Skipping.\n" % package["@version"])
         return
     logFile.write(" * Version %s: %s\n" % (package["@version"], packageURL))
     # Make sure log file is written before starting a download
@@ -106,7 +106,7 @@ def main(game_ID, downloadFolder, overwriteExistingFiles):
         print("There are no updates available for this game")
         logFile.write("There are no updates available for this game\n")
         return
-    # If there is only one update for a game
+    # If there are multiple updates for a game
     if type(xml["titlepatch"]["tag"]["package"]) is list:
         gameName = removeIllegalFileNameCharacters(xml["titlepatch"]["tag"]["package"][-1]["paramsfo"]["TITLE"])
         print("Updates were found for \"%s\"" % gameName)
@@ -114,9 +114,10 @@ def main(game_ID, downloadFolder, overwriteExistingFiles):
         downloadFolder += ("%s [%s] Updates" % (gameName, game_ID))
         for package in xml["titlepatch"]["tag"]["package"]:
             downloadPackage(package, downloadFolder, overwriteExistingFiles)
-    # If there are multiple updates for a game
+    # If there is only one update for a game
     else:
         gameName = removeIllegalFileNameCharacters(xml["titlepatch"]["tag"]["package"]["paramsfo"]["TITLE"])
+        logFile.write("Updates were found for \"%s\"\n" % gameName)
         print("Updates were found for \"%s\"" % gameName)
         downloadFolder += ("%s [%s] Updates" % (gameName, game_ID))
         package = xml["titlepatch"]["tag"]["package"]
@@ -125,6 +126,7 @@ def main(game_ID, downloadFolder, overwriteExistingFiles):
 
 
 if __name__ == '__main__':
+    # Set up argument parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--version", action="version", version=version)
     group = parser.add_mutually_exclusive_group(required=True)
@@ -136,14 +138,17 @@ if __name__ == '__main__':
                         help="Path to folder where downloads should be stored")
     parser.add_argument("--overwrite", dest="overwrite", action="store_true",
                         help="Overwrite existing files")
+    # Parse arguments
     args = parser.parse_args()
 
     # Set up log file
-    logFile = open('log.txt', 'a')
+    logFile = open('log.txt', 'a', encoding="utf-8")
+    logFile.write(("#"*120) + "\n")
     logFile.write("Script (%s) started at %s (Local %s)\n" %
                   (version, datetime.datetime.utcnow().isoformat(), datetime.datetime.now().isoformat()))
     logFile.write("Inputs: game_id %s\tgame_list %s\tdest %s\toverwrite %s\n" %
                   (args.gameID, args.gameList, args.downloadFolder, args.overwrite))
+    logFile.write(("#" * 120) + "\n")
 
     # Download a specific games updates
     if args.gameID is not None:
@@ -155,4 +160,5 @@ if __name__ == '__main__':
         logFile.write("Loaded games list from %s\n" % args.gameList)
         for ID in gameIDs:
             main(ID, args.downloadFolder, args.overwrite)
+
     logFile.close()
