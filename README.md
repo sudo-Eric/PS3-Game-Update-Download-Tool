@@ -22,4 +22,4 @@ This script was designed to run from the command line and works like any other c
 ### Dependencies:
 This script requires urllib3, xmltodict, and PyYAML.\
 All dependencies can be installed using PIP with the following command:\
-pip install -r requirements.txt
+`pip install -r requirements.txt`
