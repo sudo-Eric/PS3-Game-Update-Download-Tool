@@ -1,11 +1,11 @@
 # PS3 Game Update Download Tool
-A tool to make it easier to download game update packages for PlayStation 3 games
-This tool was mainly created with the [RPCS3](https://rpcs3.net) PlayStation 3 emulator in mind
+A tool to make it easier to download game update packages for PlayStation 3 games.
+This tool was mainly created with the [RPCS3](https://rpcs3.net) PlayStation 3 emulator in mind.
 
 There are three main use cases for this tool.
-1. You want to download updates for a single game (or one game at a time)
-2. You want to download updates for all of your games at once
-3. Getting a list of download links for game updates to be downloaded separately
+1. You want to download updates for a single game (or one game at a time).
+2. You want to download updates for all of your games at once.
+3. Getting a list of download links for game updates to be downloaded separately.
 
 ### How to use:
 This script was designed to run from the command line and works like any other command line utility.
@@ -20,4 +20,6 @@ This script was designed to run from the command line and works like any other c
 --store: Create list of update download links instead of downloading updates directly
 
 ### Dependencies:
-This script requires urllib3, xmltodict, and PyYAML. These can be installed using PIP.
+This script requires urllib3, xmltodict, and PyYAML.\
+All dependencies can be installed using PIP with the following command:\
+pip install -r requirements.txt
