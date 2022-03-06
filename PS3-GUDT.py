@@ -62,7 +62,7 @@ def removeIllegalFileNameCharacters(filename):
         .replace("\"", "'").replace("<", "-").replace(">", "-")
 
 
-def downloadPackage(package, downloadFolder):
+def downloadPackage(package, downloadFolder, overwriteExistingFiles):
     packageURL = package["@url"]
     packageName = package["@url"].split("/")[-1]
     print(" * Downloading version %s: \"%s\" (%s)" %
@@ -70,13 +70,16 @@ def downloadPackage(package, downloadFolder):
 
     if not os.path.exists(downloadFolder):
         os.makedirs(downloadFolder)
+    if os.path.exists(downloadFolder + os.path.sep + packageName) and not overwriteExistingFiles:
+        print("\t+File already exists. Skipping.")
+        return
     urllib.request.urlretrieve(packageURL, downloadFolder + os.path.sep + packageName)
 
     # print("\t+Comparing file hash...", end="")
     # print("Pass") if sha1sumChecker(downloadFolder + os.path.sep + packageName, package["@sha1sum"]) else print("Fail")
 
 
-def main(game_ID, downloadFolder):
+def main(game_ID, downloadFolder, overwriteExistingFiles):
     if not downloadFolder[-1] == os.path.sep:
         downloadFolder += os.path.sep
     game_ID = game_ID.upper()
@@ -90,13 +93,13 @@ def main(game_ID, downloadFolder):
         print("Updates were found for \"%s\"" % gameName)
         downloadFolder += ("%s [%s] Updates" % (gameName, game_ID))
         for package in xml["titlepatch"]["tag"]["package"]:
-            downloadPackage(package, downloadFolder)
+            downloadPackage(package, downloadFolder, overwriteExistingFiles)
     else:
         gameName = removeIllegalFileNameCharacters(xml["titlepatch"]["tag"]["package"]["paramsfo"]["TITLE"])
         print("Updates were found for \"%s\"" % gameName)
         downloadFolder += ("%s [%s] Updates" % (gameName, game_ID))
         package = xml["titlepatch"]["tag"]["package"]
-        downloadPackage(package, downloadFolder)
+        downloadPackage(package, downloadFolder, overwriteExistingFiles)
     print("All updates have been downloaded!")
 
 
@@ -110,12 +113,14 @@ if __name__ == '__main__':
                        help="Path to the games.yml file created by RPCS3")
     parser.add_argument("--dest", dest="downloadFolder", default="PS3 Game Update Downloads",
                         help="Path to folder where downloads should be stored")
+    parser.add_argument("--overwrite", dest="overwrite", action="store_true",
+                        help="Overwrite existing files")
     args = parser.parse_args()
 
     if args.gameID is not None:
-        main(args.gameID, args.downloadFolder)
+        main(args.gameID, args.downloadFolder, args.overwrite)
     else:
         with open(args.gameList) as f:
             gameIDs = yaml.load(f, Loader=yaml.loader.SafeLoader)
         for ID in gameIDs:
-            main(ID, args.downloadFolder)
+            main(ID, args.downloadFolder, args.overwrite)
