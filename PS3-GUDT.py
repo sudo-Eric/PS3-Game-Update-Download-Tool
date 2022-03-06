@@ -9,10 +9,11 @@ import hashlib
 import yaml
 import datetime
 
-version = "PS3-Game-Update-Download-Tool v1.1"
+version = "PS3-Game-Update-Download-Tool v1.2"
 
 PS3GameUpdateDataURL = "https://a0.ww.np.dl.playstation.net/tpl/np/%s/%s-ver.xml"
 
+args = None
 logFile = None
 
 
@@ -85,7 +86,7 @@ def downloadPackage(package, downloadFolder, overwriteExistingFiles):
     # Make sure log file is written before starting a download
     logFile.flush()
     os.fsync(logFile.fileno())
-    # Download file
+    # Download update file
     urllib.request.urlretrieve(packageURL, downloadFolder + os.path.sep + packageName)
 
     # File hashes appear to always be different. Unsure why.
@@ -93,7 +94,7 @@ def downloadPackage(package, downloadFolder, overwriteExistingFiles):
     # print("Pass") if sha1sumChecker(downloadFolder + os.path.sep + packageName, package["@sha1sum"]) else print("Fail")
 
 
-def main(game_ID, downloadFolder, overwriteExistingFiles):
+def main(game_ID, downloadFolder, overwriteExistingFiles=False):
     if not downloadFolder[-1] == os.path.sep:
         downloadFolder += os.path.sep
     game_ID = game_ID.upper()
@@ -113,7 +114,12 @@ def main(game_ID, downloadFolder, overwriteExistingFiles):
         logFile.write("Updates were found for \"%s\"\n" % gameName)
         downloadFolder += ("%s [%s] Updates" % (gameName, game_ID))
         for package in xml["titlepatch"]["tag"]["package"]:
-            downloadPackage(package, downloadFolder, overwriteExistingFiles)
+            if args.downloadUpdates:
+                downloadPackage(package, downloadFolder, overwriteExistingFiles)
+            else:
+                f = open(downloadFolder + "update_links.txt", "a")
+                f.write(package["@url"])
+                f.close()
     # If there is only one update for a game
     else:
         gameName = removeIllegalFileNameCharacters(xml["titlepatch"]["tag"]["package"]["paramsfo"]["TITLE"])
@@ -121,11 +127,17 @@ def main(game_ID, downloadFolder, overwriteExistingFiles):
         print("Updates were found for \"%s\"" % gameName)
         downloadFolder += ("%s [%s] Updates" % (gameName, game_ID))
         package = xml["titlepatch"]["tag"]["package"]
-        downloadPackage(package, downloadFolder, overwriteExistingFiles)
+        if args.downloadUpdates:
+            downloadPackage(package, downloadFolder, overwriteExistingFiles)
+        else:
+            f = open(downloadFolder + ".txt", "a")
+            f.write(package["@url"] + "\n")
+            f.close()
     print("All updates have been downloaded!")
 
 
 if __name__ == '__main__':
+    #global args, logFile
     # Set up argument parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--version", action="version", version=version)
@@ -138,6 +150,8 @@ if __name__ == '__main__':
                         help="Path to folder where downloads should be stored")
     parser.add_argument("--overwrite", dest="overwrite", action="store_true",
                         help="Overwrite existing files")
+    parser.add_argument("--store", dest="downloadUpdates", action="store_false",
+                        help="Create list of update download links instead of downloading updates directly")
     # Parse arguments
     args = parser.parse_args()
 
