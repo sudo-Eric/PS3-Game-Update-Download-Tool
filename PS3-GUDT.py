@@ -118,7 +118,7 @@ def main(game_ID, downloadFolder, overwriteExistingFiles=False):
                 downloadPackage(package, downloadFolder, overwriteExistingFiles)
             else:
                 f = open(downloadFolder + "update_links.txt", "a")
-                f.write(package["@url"])
+                f.write(package["@url"] + "\n")
                 f.close()
     # If there is only one update for a game
     else:
@@ -137,7 +137,6 @@ def main(game_ID, downloadFolder, overwriteExistingFiles=False):
 
 
 if __name__ == '__main__':
-    #global args, logFile
     # Set up argument parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--version", action="version", version=version)
