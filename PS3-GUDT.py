@@ -151,6 +151,8 @@ if __name__ == '__main__':
                         help="Overwrite existing files")
     parser.add_argument("--store", dest="downloadUpdates", action="store_false",
                         help="Create list of update download links instead of downloading updates directly")
+    # parser.add_argument("--delay", dest="requestDelay", nargs='+', default=[0, 0],
+    #                     help="")
     # Parse arguments
     args = parser.parse_args()
 
@@ -159,9 +161,14 @@ if __name__ == '__main__':
     logFile.write(("#"*120) + "\n")
     logFile.write("Script (%s) started at %s (Local %s)\n" %
                   (version, datetime.datetime.utcnow().isoformat(), datetime.datetime.now().isoformat()))
-    logFile.write("Inputs: game_id %s\tgame_list %s\tdest %s\toverwrite %s\n" %
-                  (args.gameID, args.gameList, args.downloadFolder, args.overwrite))
-    logFile.write(("#" * 120) + "\n")
+    logFile.write("Inputs: game_id %s    game_list %s    dest %s    overwrite %s    delay %s\n" %
+                  (args.gameID, args.gameList, args.downloadFolder, args.overwrite, args.requestDelay))
+    logFile.write(("=" * 120) + "\n")
+
+    # If download folder does not exist, create it
+    if not os.path.exists(args.downloadFolder):
+        logFile.write("Creating directory \"%s\"\n" % args.downloadFolder)
+        os.makedirs(args.downloadFolder)
 
     # Download a specific games updates
     if args.gameID is not None:
