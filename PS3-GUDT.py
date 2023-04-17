@@ -8,6 +8,7 @@ import xmltodict
 import hashlib
 import yaml
 import datetime
+import time
 
 version = "PS3-Game-Update-Download-Tool v1.2"
 
@@ -15,6 +16,8 @@ PS3GameUpdateDataURL = "https://a0.ww.np.dl.playstation.net/tpl/np/%s/%s-ver.xml
 
 args = None
 logFile = None
+requestDelay = [0, 0]
+delayCounter = 0
 
 
 def getxml(url):
@@ -60,6 +63,15 @@ def formatByteSize(n):
         n = round(n / 1000, 2)
         sizeDesignator = "GB"
     return str(n) + sizeDesignator
+
+
+def delay():
+    global requestDelay, delayCounter
+    if requestDelay[0] != 0:
+        delayCounter += 1
+        if delayCounter > requestDelay[1]:
+            delayCounter = 0
+            time.sleep(requestDelay[0])
 
 
 def removeIllegalFileNameCharacters(filename):
@@ -120,6 +132,7 @@ def main(game_ID, downloadFolder, overwriteExistingFiles=False):
                 f = open(downloadFolder + "update_links.txt", "a")
                 f.write(package["@url"] + "\n")
                 f.close()
+            delay()
     # If there is only one update for a game
     else:
         gameName = removeIllegalFileNameCharacters(xml["titlepatch"]["tag"]["package"]["paramsfo"]["TITLE"])
@@ -134,6 +147,7 @@ def main(game_ID, downloadFolder, overwriteExistingFiles=False):
             f.write(package["@url"] + "\n")
             f.close()
     print("All updates have been downloaded!")
+    delay()
 
 
 if __name__ == '__main__':
@@ -151,10 +165,19 @@ if __name__ == '__main__':
                         help="Overwrite existing files")
     parser.add_argument("--store", dest="downloadUpdates", action="store_false",
                         help="Create list of update download links instead of downloading updates directly")
-    # parser.add_argument("--delay", dest="requestDelay", nargs='+', default=[0, 0],
-    #                     help="")
+    parser.add_argument("--delay", dest="requestDelay", nargs='+', default=[0, 0],
+                        help="Add a time delay between requests to SONY's servers")
     # Parse arguments
     args = parser.parse_args()
+
+    if len(args.requestDelay) == 1:
+        args.requestDelay = [args.requestDelay[0], 1]
+    if len(args.requestDelay) != 2:
+        print("Delay only takes either one or two arguments.")
+        print(" * DELAY_DURATION or DELAY_DURATION DELAY_INTERVAL")
+        exit(1)
+    requestDelay[0] = float(args.requestDelay[0])
+    requestDelay[1] = float(args.requestDelay[1])
 
     # Set up log file
     logFile = open('log.txt', 'a', encoding="utf-8")
