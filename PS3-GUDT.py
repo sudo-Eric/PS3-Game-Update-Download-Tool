@@ -115,7 +115,7 @@ def main(game_ID, downloadFolder, overwriteExistingFiles=False):
     xml = getxml(PS3GameUpdateDataURL % (game_ID, game_ID))
     logFile.write("Data retrieved: ")
     # If the XML file does not exist, no updates are available
-    if xml is None:
+    if xml is None or xml.__contains__('Error'):
         print("There are no updates available for this game")
         logFile.write("There are no updates available for this game\n")
         return
